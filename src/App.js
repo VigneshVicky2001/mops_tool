@@ -10,7 +10,7 @@ import Sidebar from './Components/Sidebar';
 import React, { useState } from 'react';
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);

@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Tooltip } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AdUnitsIcon from '@mui/icons-material/AdUnits';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import AddToPhotosIcon from '@mui/icons-material/AddToPhotos';
 
 const Sidebar = ({ open, toggleSidebar, isMinimized }) => {
-  const drawerWidth = isMinimized ? 70 : 264;
+  const [isHovered, setIsHovered] = useState(false);
+  const drawerWidth = 264;
+  const minimizedWidth = 70;
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,56 +22,29 @@ const Sidebar = ({ open, toggleSidebar, isMinimized }) => {
     { label: 'In-App Banner', path: '/in-app-banner', icon: <AdUnitsIcon /> },
   ];
 
+  const currentWidth = isMinimized ? (isHovered ? drawerWidth : minimizedWidth) : drawerWidth;
+
   return (
     <Drawer
       variant="permanent"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       sx={{
-        width: isMinimized ? 70 : drawerWidth,
+        width: currentWidth,
         flexShrink: 0,
-        '&:hover': {
-          width: drawerWidth,
-        },
-        transition: 'width 0.3s ease',
+        whiteSpace: 'nowrap',
         '& .MuiDrawer-paper': {
-          width: isMinimized ? 70 : drawerWidth,
+          width: currentWidth,
           top: '100px',
           backgroundColor: '#333',
           color: '#fff',
           paddingTop: '10px',
-          transition: 'width 0.3s ease',
-          overflow: 'hidden',
-          '&:hover': {
-            width: drawerWidth,
-          },
+          transition: 'width 0.3s ease-in-out',
+          overflowX: 'hidden',
         },
       }}
       open={open}
     >
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          paddingRight: '8px',
-        }}
-      >
-        <Tooltip title={isMinimized ? 'Expand' : 'Collapse'} placement="right">
-          <IconButton
-            onClick={toggleSidebar}
-            sx={{
-              margin: '8px auto',
-              color: '#fff',
-              borderRadius: '50%',
-              '&:hover': {
-                backgroundColor: '#4caf50',
-                color: '#fff',
-              },
-            }}
-          >
-            {isMinimized ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-          </IconButton>
-        </Tooltip>
-      </Box>
-
       <List sx={{ paddingTop: '10px' }}>
         {menuItems.map((item, index) => (
           <ListItem
@@ -90,25 +63,26 @@ const Sidebar = ({ open, toggleSidebar, isMinimized }) => {
               },
             }}
           >
-            <Tooltip title={isMinimized ? item.label : ''} placement="right">
+            <Tooltip title={(isMinimized && !isHovered) ? item.label : ''} placement="right">
               <ListItemIcon
                 sx={{
                   color: location.pathname === item.path ? '#4caf50' : '#fff',
+                  minWidth: 48,
                 }}
               >
                 {item.icon}
               </ListItemIcon>
             </Tooltip>
 
-            {!isMinimized && (
-              <ListItemText
-                primary={item.label}
-                sx={{
-                  color: location.pathname === item.path ? '#4caf50' : '#fff',
-                  whiteSpace: 'nowrap',
-                }}
-              />
-            )}
+            <ListItemText
+              primary={item.label}
+              sx={{
+                opacity: (isMinimized && !isHovered) ? 0 : 1,
+                transition: 'opacity 0.2s',
+                color: location.pathname === item.path ? '#4caf50' : '#fff',
+                whiteSpace: 'nowrap',
+              }}
+            />
           </ListItem>
         ))}
       </List>
