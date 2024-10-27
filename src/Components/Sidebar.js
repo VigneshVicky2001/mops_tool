@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Tooltip } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, Tooltip } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdUnitsIcon from '@mui/icons-material/AdUnits';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import AddToPhotosIcon from '@mui/icons-material/AddToPhotos';
 
-const Sidebar = ({ open, toggleSidebar, isMinimized }) => {
+const Sidebar = ({ open, toggleSidebar, isMinimized, onHoverChange }) => {
   const [isHovered, setIsHovered] = useState(false);
   const drawerWidth = 264;
-  const minimizedWidth = 70;
+  const minimizedWidth = 60;
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    onHoverChange?.(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    onHoverChange?.(false);
+  };
 
   const navigateToPage = (path) => {
     navigate(path);
@@ -27,15 +37,20 @@ const Sidebar = ({ open, toggleSidebar, isMinimized }) => {
   return (
     <Drawer
       variant="permanent"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       sx={{
         width: currentWidth,
         flexShrink: 0,
         whiteSpace: 'nowrap',
+        position: 'absolute',
+        height: '100%',
+        zIndex: 2,
         '& .MuiDrawer-paper': {
+          position: 'absolute',
           width: currentWidth,
-          top: '100px',
+          top: 0,
+          bottom: 0,
           backgroundColor: '#333',
           color: '#fff',
           paddingTop: '10px',
@@ -73,7 +88,6 @@ const Sidebar = ({ open, toggleSidebar, isMinimized }) => {
                 {item.icon}
               </ListItemIcon>
             </Tooltip>
-
             <ListItemText
               primary={item.label}
               sx={{

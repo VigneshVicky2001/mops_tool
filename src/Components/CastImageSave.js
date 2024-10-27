@@ -6,7 +6,7 @@ const CastImage = () => {
   return (
     <Box
       sx={{
-        height: '84vh',
+        height: '85vh',
         width: '100vw',
         display: 'flex',
         alignItems: 'center',

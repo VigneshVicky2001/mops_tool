@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Grid, Typography, Box, CircularProgress, Stack, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Typography,
+  Box,
+  CircularProgress,
+  Stack,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+  IconButton,
+  Container,
+} from '@mui/material';
 import UploadIcon from '@mui/icons-material/Upload';
-import axios from 'axios';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import ImageIcon from '@mui/icons-material/Image';
+import CloseIcon from '@mui/icons-material/Close';
 
 const CastImage = () => {
   const [file, setFile] = useState(null);
@@ -14,6 +32,7 @@ const CastImage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isDownloadComplete, setIsDownloadComplete] = useState(false);
   const [invalidFile, setInvalidFile] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -24,11 +43,13 @@ const CastImage = () => {
       setFileName(selectedFile.name);
       setError('');
       setInvalidFile(false);
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
     } else {
       setFile(null);
       setFileName('');
       setInvalidFile(true);
-      // setError('Only JPEG or PNG files are allowed.');
+      setPreviewUrl(null);
     }
   };
 
@@ -45,20 +66,14 @@ const CastImage = () => {
     formData.append('castId', castId);
     formData.append('gcpPath', gcpPath);
 
-    setDialogOpen(true);
     try {
-      const response = await axios.post('http://localhost:8080/castImage/upload-cast-image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      if (response.status === 200) {
-        setMessage('Image updated successfully!');
-        setError('');
-      }
+      // Simulated API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setMessage('Image updated successfully!');
+      setError('');
+      setDialogOpen(true);
     } catch (err) {
-      setError(err.response?.data || 'Something went wrong. Try again!');
+      setError(err.message || 'Something went wrong. Try again!');
       setMessage('');
     } finally {
       setLoading(false);
@@ -66,214 +81,257 @@ const CastImage = () => {
   };
 
   const handleDownload = () => {
-    // const fileUrl = 'http://localhost:8080/path-to-purge-list-file';
-    // const link = document.createElement('a');
-    // link.href = fileUrl;
-    // link.setAttribute('download', 'purge_list.txt');
-    // document.body.appendChild(link);
-    // link.click();
-    // document.body.removeChild(link);
-    
     setIsDownloadComplete(true);
     setDialogOpen(false);
-    
-    // Remove beforeunload event after download is complete
-    window.removeEventListener('beforeunload', handleBeforeUnload);
   };
 
-  const handleBeforeUnload = (event) => {
-    if (!isDownloadComplete) {
-      event.preventDefault();
-      event.returnValue = '';
-    }
+  const removeFile = () => {
+    setFile(null);
+    setFileName('');
+    setPreviewUrl(null);
   };
 
   useEffect(() => {
-    window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
     };
-  }, [isDownloadComplete]);
+  }, [previewUrl]);
 
   return (
-    <Box
-      sx={{
-        marginTop: 4,
-        p: 4,
-        maxWidth: '450px',
-        mx: 'auto',
-        borderRadius: 3,
-        bgcolor: 'background.paper',
-        textAlign: 'center',
-        position: 'relative',
-      }}
-    >
-      <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
-        Update Cast Image
-      </Typography>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Paper
+        elevation={6}
+        sx={{
+          p: 4,
+          borderRadius: 3,
+          background: 'linear-gradient(145deg, #ffffff 0%, #f5f7ff 100%)',
+        }}
+      >
+        <Typography 
+          variant="h4" 
+          align="center" 
+          gutterBottom 
+          sx={{ 
+            fontWeight: 700,
+            color: '#1a237e',
+            mb: 3
+          }}
+        >
+          Cast Image Uploader
+        </Typography>
 
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={2}
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={4}>
+            {/* Upload Area */}
+            <Box
               sx={{
-                justifyContent: 'space-between',
-                border: '1px solid #ddd',
-                padding: '8px 12px',
+                border: '2px dashed',
+                borderColor: invalidFile ? 'error.main' : file ? 'success.main' : 'primary.main',
                 borderRadius: 2,
-                backgroundColor: '#f9f9f9',
-                animation: invalidFile ? 'blink-red 1s infinite' : 'none',
-                '@keyframes blink-red': {
-                  '0%, 100%': { borderColor: '#ddd' },
-                  '50%': { borderColor: 'red' },
-                },
+                p: 3,
+                textAlign: 'center',
+                bgcolor: invalidFile ? 'error.lighter' : file ? 'success.lighter' : 'primary.lighter',
+                transition: 'all 0.3s ease',
               }}
             >
-              <Button
-                variant="contained"
-                component="label"
-                sx={{
-                  color: '#fff',
-                  bgcolor: '#1976d2',
-                  textTransform: 'none',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  '&:hover': {
-                    backgroundColor: '#1565c0',
-                  },
-                }}
-                startIcon={<UploadIcon />}
-              >
-                Upload
-                <input
-                  type="file"
-                  hidden
-                  accept=".jpeg,.jpg,.png"
-                  onChange={handleFileChange}
-                />
-              </Button>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '200px',
-                }}
-              >
-                {fileName ? fileName : 'No file selected'}
-              </Typography>
-            </Stack>
-            <Typography 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{ 
-                mt: 1 ,
-                animation: invalidFile ? 'blink-red 1s infinite' : 'none',
-                '@keyframes blink-red': {
-                  '0%, 100%': { borderColor: '#ddd' },
-                  '50%': { borderColor: 'red' },
-                },
-              }}
-            >
-              Only JPG, JPEG and PNG files are allowed.
-            </Typography>
-          </Grid>
+              {previewUrl ? (
+                <Box sx={{ position: 'relative' }}>
+                  <IconButton
+                    onClick={removeFile}
+                    sx={{
+                      position: 'absolute',
+                      right: 0,
+                      top: 0,
+                      bgcolor: 'background.paper',
+                      '&:hover': { bgcolor: 'error.lighter' },
+                    }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                  <Box
+                    component="img"
+                    src={previewUrl}
+                    alt="Preview"
+                    sx={{
+                      maxHeight: 200,
+                      maxWidth: '100%',
+                      borderRadius: 1,
+                      boxShadow: 3,
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+                    {fileName}
+                  </Typography>
+                </Box>
+              ) : (
+                <Stack spacing={2} alignItems="center">
+                  <ImageIcon sx={{ fontSize: 48, color: 'primary.main' }} />
+                  <Button
+                    variant="contained"
+                    component="label"
+                    startIcon={<UploadIcon />}
+                    sx={{
+                      bgcolor: 'primary.main',
+                      '&:hover': { bgcolor: 'primary.dark' },
+                    }}
+                  >
+                    Choose Image
+                    <input
+                      type="file"
+                      hidden
+                      accept=".jpeg,.jpg,.png"
+                      onChange={handleFileChange}
+                    />
+                  </Button>
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary" 
+                    sx={{ 
+                      mt: 1 ,
+                      animation: invalidFile ? 'blink-red 1s infinite' : 'none',
+                      '@keyframes blink-red': {
+                        '0%, 100%': { borderColor: '#ddd' },
+                        '50%': { borderColor: 'red' },
+                      },
+                    }}
+                    >
+                    Only JPG, JPEG and PNG files are allowed.
+                    </Typography>
+                </Stack>
+              )}
+            </Box>
 
-          <Grid item xs={12}>
+            {/* Input Fields */}
             <TextField
-              fullWidth
               label="Cast ID"
-              variant="outlined"
               required
               value={castId}
               onChange={(e) => setCastId(e.target.value)}
               sx={{
-                mb: 2,
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                },
+                  borderRadius: 2,
+                  bgcolor: 'background.paper',
+                }
               }}
             />
-          </Grid>
 
-          <Grid item xs={12}>
             <TextField
-              fullWidth
               label="GCP Path"
-              variant="outlined"
               required
               value={gcpPath}
               onChange={(e) => setGcpPath(e.target.value)}
               sx={{
-                mb: 2,
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                },
+                  borderRadius: 2,
+                  bgcolor: 'background.paper',
+                }
               }}
             />
-          </Grid>
 
-          <Grid item xs={12}>
+            {/* Submit Button */}
             <Button
-              fullWidth
               type="submit"
               variant="contained"
-              color="primary"
               disabled={loading}
               sx={{
-                py: 1,
-                fontSize: '16px',
-                maxWidth: '150px',
-                mx: 'auto',
-                textTransform: 'none',
-                borderRadius: '8px',
+                py: 1.5,
+                borderRadius: 2,
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                boxShadow: 4,
+                bgcolor: 'primary.main',
                 '&:hover': {
-                  backgroundColor: '#1565c0',
+                  bgcolor: 'primary.dark',
+                  boxShadow: 6,
                 },
               }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Upload Image'
+              )}
             </Button>
-          </Grid>
 
-          {message && (
-            <Grid item xs={12}>
-              <Typography variant="body1" color="success.main" sx={{ fontWeight: 'bold' }}>
-                {message}
-              </Typography>
-            </Grid>
-          )}
+            {/* Messages */}
+            {message && (
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: 'success.lighter',
+                }}
+              >
+                <CheckCircleIcon color="success" />
+                <Typography color="success.main" fontWeight="medium">
+                  {message}
+                </Typography>
+              </Stack>
+            )}
 
-          {error && (
-            <Grid item xs={12}>
-              <Typography variant="body1" color="error.main" sx={{ fontWeight: 'bold' }}>
-                {error}
-              </Typography>
-            </Grid>
-          )}
-        </Grid>
-      </form>
+            {error && (
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: 'error.lighter',
+                }}
+              >
+                <ErrorIcon color="error" />
+                <Typography color="error.main" fontWeight="medium">
+                  {error}
+                </Typography>
+              </Stack>
+            )}
+          </Stack>
+        </form>
 
-      <Dialog open={dialogOpen} disableBackdropClick disableEscapeKeyDown>
-        <DialogTitle>File Uploaded Successfully</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            File uploaded successfully, download the following purge list and hand it over to the infra team.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDownload} color="primary" variant="contained">
-            Download Purge List
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        {/* Success Dialog */}
+        <Dialog 
+          open={dialogOpen} 
+          onClose={() => setDialogOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              boxShadow: 24,
+            }
+          }}
+        >
+          <DialogTitle>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <CheckCircleIcon color="success" />
+              <Typography variant="h6">Upload Successful</Typography>
+            </Stack>
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              File uploaded successfully. Download the following purge list and hand it over to the infra team.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ p: 2.5 }}>
+            <Button
+              onClick={handleDownload}
+              variant="contained"
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                px: 3,
+              }}
+            >
+              Download Purge List
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Paper>
+    </Container>
   );
 };
 

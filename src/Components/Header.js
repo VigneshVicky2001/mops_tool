@@ -18,10 +18,10 @@ const Header = () => {
     <AppBar 
       position="static" 
       sx={{ 
-        backgroundColor: '#222222', 
+        backgroundColor: '#333', 
         top: 0,
-        minHeight: '100px',
-        height: '100px',
+        minHeight: '90px',
+        height: '90px',
         overflow: 'hidden',
       }}
     >

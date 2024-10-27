@@ -7,7 +7,7 @@ const Footer = () => {
       component="footer" 
       sx={{ 
         padding: '5px', 
-        backgroundColor: '#222222', 
+        backgroundColor: '#333', 
         color: '#fff',
         textAlign: 'center', 
         position: 'fixed', 
