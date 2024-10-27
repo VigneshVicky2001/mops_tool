@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Tooltip } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ImageIcon from '@mui/icons-material/Image';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AdUnitsIcon from '@mui/icons-material/AdUnits';
@@ -27,33 +26,45 @@ const Sidebar = ({ open, toggleSidebar, isMinimized }) => {
     <Drawer
       variant="permanent"
       sx={{
-        width: drawerWidth,
+        width: isMinimized ? 70 : drawerWidth,
         flexShrink: 0,
-        transition: 'width 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)',
-        '& .MuiDrawer-paper': {
+        '&:hover': {
           width: drawerWidth,
+        },
+        transition: 'width 0.3s ease',
+        '& .MuiDrawer-paper': {
+          width: isMinimized ? 70 : drawerWidth,
           top: '100px',
           backgroundColor: '#333',
           color: '#fff',
           paddingTop: '10px',
-          transition: 'width 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)',
+          transition: 'width 0.3s ease',
+          overflow: 'hidden',
+          '&:hover': {
+            width: drawerWidth,
+          },
         },
       }}
       open={open}
     >
-      <Box sx={{ display: 'flex', justifyContent: isMinimized ? 'center' : 'initial' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          paddingRight: '8px',
+        }}
+      >
         <Tooltip title={isMinimized ? 'Expand' : 'Collapse'} placement="right">
           <IconButton
             onClick={toggleSidebar}
             sx={{
-              margin: isMinimized ? '8px auto' : '8px 10px',
+              margin: '8px auto',
               color: '#fff',
               borderRadius: '50%',
               '&:hover': {
                 backgroundColor: '#4caf50',
                 color: '#fff',
               },
-              transition: 'background-color 0.3s, color 0.3s',
             }}
           >
             {isMinimized ? <ChevronRightIcon /> : <ChevronLeftIcon />}
@@ -69,24 +80,20 @@ const Sidebar = ({ open, toggleSidebar, isMinimized }) => {
             onClick={() => navigateToPage(item.path)}
             sx={{
               cursor: 'pointer',
-              justifyContent: isMinimized ? 'center' : 'initial',
-              px: isMinimized ? 1 : 2,
-              py: 2,
+              justifyContent: 'initial',
+              px: 2,
+              py: 1.5,
+              minHeight: 56,
               backgroundColor: location.pathname === item.path ? '#444' : 'transparent',
               '&:hover': {
                 backgroundColor: '#555',
               },
-              transition: 'all 0.3s ease',
             }}
           >
             <Tooltip title={isMinimized ? item.label : ''} placement="right">
               <ListItemIcon
                 sx={{
-                  minWidth: 0,
-                  mr: isMinimized ? 0 : 2,
-                  justifyContent: 'center',
                   color: location.pathname === item.path ? '#4caf50' : '#fff',
-                  transition: 'margin 0.3s ease',
                 }}
               >
                 {item.icon}
@@ -98,10 +105,7 @@ const Sidebar = ({ open, toggleSidebar, isMinimized }) => {
                 primary={item.label}
                 sx={{
                   color: location.pathname === item.path ? '#4caf50' : '#fff',
-                  opacity: isMinimized ? 0 : 1,
-                  transition: 'opacity 0.4s ease, margin-left 0.3s ease',
-                  marginLeft: isMinimized ? '0px' : '10px',
-                  whiteSpace: 'nowrap' // Avoid text wrapping
+                  whiteSpace: 'nowrap',
                 }}
               />
             )}
