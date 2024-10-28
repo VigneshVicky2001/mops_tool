@@ -54,7 +54,7 @@ const Sidebar = ({ open, toggleSidebar, isMinimized, onHoverChange }) => {
           backgroundColor: '#333',
           color: '#fff',
           paddingTop: '10px',
-          transition: 'width 0.3s ease-in-out',
+          transition: 'width 0.2s ease-in-out',
           overflowX: 'hidden',
         },
       }}

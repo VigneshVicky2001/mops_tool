@@ -16,8 +16,15 @@ function App() {
   };
 
   return (
-    <div className="App" style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      <Box sx={{ display: 'grid', gridTemplateRows: 'auto 1fr auto', minHeight: '100vh' }}>
+    <div className="App" style={{ height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: '#f4f6f8' }}>
+      <Box 
+        sx={{ 
+          display: 'grid', 
+          gridTemplateRows: 'auto 1fr auto', 
+          minHeight: '100vh', 
+          bgcolor: '#f4f6f8',
+        }}
+      >
         <BrowserRouter>
           <Header />
           <Box sx={{ position: 'relative', flexGrow: 1, overflow: 'hidden' }}>
@@ -35,7 +42,7 @@ function App() {
                 bottom: 0,
                 overflow: 'auto',
                 transition: 'left 0.3s ease-in-out',
-                backgroundColor: 'background.default',
+                backgroundColor: '#f4f6f8',
               }}
             >
               <Routes>

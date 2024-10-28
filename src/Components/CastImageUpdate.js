@@ -14,6 +14,7 @@ import {
   Paper,
   IconButton,
   Container,
+  Grid,
 } from '@mui/material';
 import UploadIcon from '@mui/icons-material/Upload';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -67,7 +68,6 @@ const CastImage = () => {
     formData.append('gcpPath', gcpPath);
 
     try {
-      // Simulated API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       setMessage('Image updated successfully!');
       setError('');
@@ -99,34 +99,64 @@ const CastImage = () => {
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!isDownloadComplete) {
+        e.preventDefault();
+        e.returnValue = 'Are you sure you want to leave? Your download isn\'t complete yet.';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDownloadComplete]);
+
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 8 }}>
       <Paper
         elevation={6}
         sx={{
-          p: 4,
           borderRadius: 3,
+          overflow: 'hidden',
           background: 'linear-gradient(145deg, #ffffff 0%, #f5f7ff 100%)',
         }}
       >
         <Typography 
           variant="h4" 
           align="center" 
-          gutterBottom 
           sx={{ 
-            fontWeight: 700,
+            fontWeight: 450,
             color: '#1a237e',
-            mb: 3
+            py: 3,
+            background: 'linear-gradient(90deg, #1a237e 0%, #3949ab 100%)',
+            color: 'white',
+            mb: 0
           }}
         >
-          Cast Image Uploader
+          Cast Image Update
         </Typography>
 
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={4}>
-            {/* Upload Area */}
+        <Grid container sx={{ minHeight: '500px' }}>
+          <Grid item xs={12} md={6} sx={{ 
+            p: 4,
+            borderRight: { md: '1px solid #e0e0e0' },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            bgcolor: '#f8faff'
+          }}>
             <Box
               sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
                 border: '2px dashed',
                 borderColor: invalidFile ? 'error.main' : file ? 'success.main' : 'primary.main',
                 borderRadius: 2,
@@ -137,15 +167,16 @@ const CastImage = () => {
               }}
             >
               {previewUrl ? (
-                <Box sx={{ position: 'relative' }}>
+                <Box sx={{ position: 'relative', width: '100%', textAlign: 'center' }}>
                   <IconButton
                     onClick={removeFile}
                     sx={{
                       position: 'absolute',
-                      right: 0,
-                      top: 0,
+                      right: 8,
+                      top: 8,
                       bgcolor: 'background.paper',
                       '&:hover': { bgcolor: 'error.lighter' },
+                      zIndex: 1,
                     }}
                   >
                     <CloseIcon />
@@ -155,19 +186,19 @@ const CastImage = () => {
                     src={previewUrl}
                     alt="Preview"
                     sx={{
-                      maxHeight: 200,
+                      maxHeight: 300,
                       maxWidth: '100%',
-                      borderRadius: 1,
+                      borderRadius: 2,
                       boxShadow: 3,
                     }}
                   />
-                  <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+                  <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
                     {fileName}
                   </Typography>
                 </Box>
               ) : (
                 <Stack spacing={2} alignItems="center">
-                  <ImageIcon sx={{ fontSize: 48, color: 'primary.main' }} />
+                  <ImageIcon sx={{ fontSize: 64, color: 'primary.main' }} />
                   <Button
                     variant="contained"
                     component="label"
@@ -175,6 +206,8 @@ const CastImage = () => {
                     sx={{
                       bgcolor: 'primary.main',
                       '&:hover': { bgcolor: 'primary.dark' },
+                      px: 3,
+                      py: 1.5,
                     }}
                   >
                     Choose Image
@@ -185,152 +218,154 @@ const CastImage = () => {
                       onChange={handleFileChange}
                     />
                   </Button>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary" 
-                    sx={{ 
-                      mt: 1 ,
-                      animation: invalidFile ? 'blink-red 1s infinite' : 'none',
-                      '@keyframes blink-red': {
-                        '0%, 100%': { borderColor: '#ddd' },
-                        '50%': { borderColor: 'red' },
-                      },
-                    }}
-                    >
-                    Only JPG, JPEG and PNG files are allowed.
-                    </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Supported formats: JPG, JPEG, PNG
+                  </Typography>
                 </Stack>
               )}
             </Box>
+          </Grid>
 
-            {/* Input Fields */}
-            <TextField
-              label="Cast ID"
-              required
-              value={castId}
-              onChange={(e) => setCastId(e.target.value)}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  bgcolor: 'background.paper',
-                }
-              }}
-            />
-
-            <TextField
-              label="GCP Path"
-              required
-              value={gcpPath}
-              onChange={(e) => setGcpPath(e.target.value)}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  bgcolor: 'background.paper',
-                }
-              }}
-            />
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading}
-              sx={{
-                py: 1.5,
-                borderRadius: 2,
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                boxShadow: 4,
-                bgcolor: 'primary.main',
-                '&:hover': {
-                  bgcolor: 'primary.dark',
-                  boxShadow: 6,
-                },
-              }}
-            >
-              {loading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                'Upload Image'
-              )}
-            </Button>
-
-            {/* Messages */}
-            {message && (
-              <Stack
-                direction="row"
-                spacing={1}
-                alignItems="center"
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  bgcolor: 'success.lighter',
-                }}
-              >
-                <CheckCircleIcon color="success" />
-                <Typography color="success.main" fontWeight="medium">
-                  {message}
+          <Grid item xs={12} md={6} sx={{ p: 4 }}>
+            <form onSubmit={handleSubmit}>
+              <Stack spacing={4} sx={{ height: '100%' }}>
+                <Typography variant="h6" color="primary.main" sx={{ mb: 2, fontWeight: 400 }}>
+                  Image Info
                 </Typography>
-              </Stack>
-            )}
 
-            {error && (
-              <Stack
-                direction="row"
-                spacing={1}
-                alignItems="center"
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  bgcolor: 'error.lighter',
-                }}
-              >
-                <ErrorIcon color="error" />
-                <Typography color="error.main" fontWeight="medium">
-                  {error}
-                </Typography>
-              </Stack>
-            )}
-          </Stack>
-        </form>
+                <TextField
+                  label="Cast ID"
+                  required
+                  value={castId}
+                  onChange={(e) => setCastId(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      bgcolor: 'background.paper',
+                    }
+                  }}
+                />
 
-        {/* Success Dialog */}
-        <Dialog 
-          open={dialogOpen} 
-          onClose={() => setDialogOpen(false)}
-          PaperProps={{
-            sx: {
-              borderRadius: 2,
-              boxShadow: 24,
-            }
-          }}
-        >
-          <DialogTitle>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <CheckCircleIcon color="success" />
-              <Typography variant="h6">Upload Successful</Typography>
-            </Stack>
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              File uploaded successfully. Download the following purge list and hand it over to the infra team.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions sx={{ p: 2.5 }}>
-            <Button
-              onClick={handleDownload}
-              variant="contained"
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                px: 3,
-              }}
-            >
-              Download Purge List
-            </Button>
-          </DialogActions>
-        </Dialog>
+                <TextField
+                  label="GCP Path"
+                  required
+                  value={gcpPath}
+                  onChange={(e) => setGcpPath(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      bgcolor: 'background.paper',
+                    }
+                  }}
+                />
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={loading}
+                  sx={{
+                    py: 1.5,
+                    height: '40px',
+                    width: '190px',
+                    borderRadius: 1,
+                    fontSize: '1.0rem',
+                    fontWeight: 540,
+                    boxShadow: 4,
+                    bgcolor: 'primary.main',
+                    mt: 'auto',
+                    '&:hover': {
+                      bgcolor: 'primary.dark',
+                      boxShadow: 6,
+                    },
+                  }}
+                >
+                  {loading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Upload Image'
+                  )}
+                </Button>
+
+                {(message || error) && (
+                  <Box sx={{ mt: 2 }}>
+                    {message && (
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        sx={{
+                          bgcolor: 'success.light',
+                          color: 'white',
+                          p: 2,
+                          borderRadius: 2,
+                          boxShadow: 1,
+                          gap: 1,
+                        }}
+                      >
+                        <CheckCircleIcon />
+                        <Typography>{message}</Typography>
+                      </Stack>
+                    )}
+                    {error && (
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        sx={{
+                          bgcolor: 'error.light',
+                          color: 'white',
+                          p: 2,
+                          borderRadius: 2,
+                          boxShadow: 1,
+                          gap: 1,
+                        }}
+                      >
+                        <ErrorIcon />
+                        <Typography>{error}</Typography>
+                      </Stack>
+                    )}
+                  </Box>
+                )}
+              </Stack>
+            </form>
+          </Grid>
+        </Grid>
       </Paper>
+
+      <Dialog
+        disableBackdropClick
+        open={dialogOpen} 
+        // onClose={() => ()}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: 24,
+          }
+        }}
+        >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <CheckCircleIcon color="success" />
+            <Typography variant="h6">Upload Successful</Typography>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            File uploaded successfully. Download the following purge list and hand it over to the infra team.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button
+            onClick={handleDownload}
+            variant="contained"
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3,
+            }}
+          >
+            Download Purge List
+          </Button>
+        </DialogActions>
+        </Dialog>
     </Container>
   );
 };
