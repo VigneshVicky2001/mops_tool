@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   TextField,
   Button,
@@ -21,6 +21,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import ImageIcon from '@mui/icons-material/Image';
 import CloseIcon from '@mui/icons-material/Close';
+import ErrorSound from '../Assets/error-sound.wav';
 
 const CastImage = () => {
   const [file, setFile] = useState(null);
@@ -34,6 +35,7 @@ const CastImage = () => {
   const [isDownloadComplete, setIsDownloadComplete] = useState(false);
   const [invalidFile, setInvalidFile] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const errorSoundRef = useRef(new Audio(ErrorSound));
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -51,7 +53,12 @@ const CastImage = () => {
       setFileName('');
       setInvalidFile(true);
       setPreviewUrl(null);
+      playErrorSound();
     }
+  };
+
+  const playErrorSound = () => {
+    errorSoundRef.current.play();
   };
 
   const handleSubmit = async (e) => {
@@ -117,38 +124,34 @@ const CastImage = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
       <Paper
-        elevation={6}
+        // elevation={6}
         sx={{
+          boxShadow: 'none',
           borderRadius: 3,
           overflow: 'hidden',
-          background: 'linear-gradient(145deg, #ffffff 0%, #f5f7ff 100%)',
+          backgroundColor: '#f4f6f8',
         }}
       >
-        <Typography 
-          variant="h4" 
-          align="center" 
-          sx={{ 
-            fontWeight: 450,
-            color: '#1a237e',
-            py: 3,
-            background: 'linear-gradient(90deg, #1a237e 0%, #3949ab 100%)',
-            color: 'white',
-            mb: 0
-          }}
-        >
-          Cast Image Update
-        </Typography>
-
         <Grid container sx={{ minHeight: '500px' }}>
           <Grid item xs={12} md={6} sx={{ 
             p: 4,
-            borderRight: { md: '1px solid #e0e0e0' },
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            bgcolor: '#f8faff'
+            bgcolor: '#f4f6f8'
           }}>
+              <Box
+                sx={{
+                  height: '50px',
+                  width: '550px',
+                  bgcolor: 'black',
+                  color: 'white',
+                  p: 1,
+                  textAlign: 'center',
+                }}
+              >
+              </Box>
             <Box
               sx={{
                 width: '100%',
@@ -157,13 +160,19 @@ const CastImage = () => {
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                border: '2px dashed',
-                borderColor: invalidFile ? 'error.main' : file ? 'success.main' : 'primary.main',
-                borderRadius: 2,
+                border: '3px solid black',
+                borderColor: invalidFile ? 'error.main' : file ? 'success.main' : 'black',
                 p: 3,
                 textAlign: 'center',
-                bgcolor: invalidFile ? 'error.lighter' : file ? 'success.lighter' : 'primary.lighter',
+                bgcolor: '#f8faff',
                 transition: 'all 0.3s ease',
+                animation: invalidFile ? 'blink 0.2s linear 3' : 'none',
+                transition: 'all 0.3s ease',
+                '@keyframes blink': {
+                  '0%': { borderColor: 'error.main', color: 'error.main' },
+                  '50%': { borderColor: 'transparent', color: 'transparent' },
+                  '100%': { borderColor: 'error.main', color: 'error.main' },
+                },
               }}
             >
               {previewUrl ? (
