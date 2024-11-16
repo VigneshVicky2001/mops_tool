@@ -42,6 +42,7 @@ const Sidebar = ({ open, toggleSidebar, isMinimized, onHoverChange }) => {
       sx={{
         width: currentWidth,
         flexShrink: 0,
+        transition: 'width 0.3s ease',
         whiteSpace: 'nowrap',
         position: 'absolute',
         height: '100%',
@@ -54,8 +55,9 @@ const Sidebar = ({ open, toggleSidebar, isMinimized, onHoverChange }) => {
           backgroundColor: '#333',
           color: '#fff',
           paddingTop: '10px',
-          transition: 'width 0.2s ease-in-out',
+          // transition: 'width 0.2s ease-in-out',
           overflowX: 'hidden',
+          transition: 'width 0.3s ease',
         },
       }}
       open={open}
@@ -76,6 +78,7 @@ const Sidebar = ({ open, toggleSidebar, isMinimized, onHoverChange }) => {
               '&:hover': {
                 backgroundColor: '#555',
               },
+              transition: 'background-color 0.3s ease',
             }}
           >
             <Tooltip title={(isMinimized && !isHovered) ? item.label : ''} placement="right">

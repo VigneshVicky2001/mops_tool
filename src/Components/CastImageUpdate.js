@@ -295,6 +295,33 @@ const CastImage = () => {
                   )}
                 </Button>
 
+                <Button
+                  // type="submit"
+                  variant="contained"
+                  disabled={loading}
+                  sx={{
+                    py: 1.5,
+                    height: '40px',
+                    width: '190px',
+                    borderRadius: 1,
+                    fontSize: '1.0rem',
+                    fontWeight: 540,
+                    boxShadow: 4,
+                    bgcolor: 'primary.main',
+                    mt: 'auto',
+                    '&:hover': {
+                      bgcolor: 'primary.dark',
+                      boxShadow: 6,
+                    },
+                  }}
+                >
+                  {loading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Get Purge List'
+                  )}
+                </Button>
+
                 {(message || error) && (
                   <Box sx={{ mt: 2 }}>
                     {message && (

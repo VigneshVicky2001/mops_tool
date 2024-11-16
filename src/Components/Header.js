@@ -20,8 +20,8 @@ const Header = () => {
       sx={{ 
         backgroundColor: '#333', 
         top: 0,
-        minHeight: '90px',
-        height: '90px',
+        minHeight: '80px',
+        height: '80px',
         overflow: 'hidden',
       }}
     >
@@ -35,7 +35,7 @@ const Header = () => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-          <img src={qp_logo} alt="Quickplay Logo" style={{width: '100%', maxWidth: '208px', height: 'auto'}} />
+          <img src={qp_logo} alt="Quickplay Logo" style={{width: '100%', maxWidth: '180px', height: 'auto'}} />
         </Box>
 
         {location.pathname === '/cast-image-update' && (
