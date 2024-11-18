@@ -238,7 +238,7 @@ const CastImage = () => {
           <Grid item xs={12} md={6} sx={{ p: 4 }}>
             <form onSubmit={handleSubmit}>
               <Stack spacing={4} sx={{ height: '100%' }}>
-                <Typography variant="h6" color="primary.main" sx={{ mb: 2, fontWeight: 400 }}>
+                <Typography variant="h5" color="primary.main" sx={{ mb: 2, fontWeight: 400 }}>
                   Image Info
                 </Typography>
 
@@ -315,11 +315,11 @@ const CastImage = () => {
                     },
                   }}
                 >
-                  {loading ? (
+                  {/* {loading ? (
                     <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    'Get Purge List'
-                  )}
+                  ) : ( */}
+                    Get Purge List
+                  {/* )} */}
                 </Button>
 
                 {(message || error) && (
