@@ -23,7 +23,6 @@ import ImageIcon from '@mui/icons-material/Image';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorSound from '../Assets/error-sound.wav';
 import axios from 'axios';
-
 const CastImage = () => {
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
@@ -37,15 +36,12 @@ const CastImage = () => {
   const [invalidFile, setInvalidFile] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const errorSoundRef = useRef(new Audio(ErrorSound));
-
   const playErrorSound = () => {
     errorSoundRef.current.play();
   };
-
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     const fileType = selectedFile?.type;
-
     if (selectedFile && (fileType === 'image/jpeg' || fileType === 'image/png' || fileType === 'image/jpg')) {
       setFile(selectedFile);
       setFileName(selectedFile.name);
@@ -61,10 +57,9 @@ const CastImage = () => {
       playErrorSound();
     }
   };
-
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [purgeListDialogOpen, setPurgeListDialogOpen] = useState(false);
-  const [purgeList, setPurgeList] = useState(null); // Stores the purge list data
+  const [purgeList, setPurgeList] = useState(null);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,17 +77,18 @@ const CastImage = () => {
     formData.append('gcpPath', gcpPath);
   
     try {
-      const response = await axios.post('https://localhost:3000/castImage/save-cast-image', formData, {
+      const response = await axios.post('http://localhost:8080/castImage/save-cast-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
   
-      if (response.status === 201 || response.status === 200) {
+      if (response.status === 200) {
         setMessage(response.data.message || 'Image uploaded successfully!');
         setError('');
         setDialogOpen(true);
-      } else if (response.status === 400 && response.data.includes("Cast ID already exists. Try updating!")) {
+      } else if (response.data.includes("Cast ID already exists. Try updating!")) {
+        console.log(updateDialogOpen);
         setUpdateDialogOpen(true);
       } else {
         setError(response.data || 'Something went wrong. Try again!');
@@ -116,14 +112,15 @@ const CastImage = () => {
     formData.append('gcpPath', gcpPath);
   
     try {
-      const response = await axios.post('https://localhost:3000/castImage/update-cast-image', formData, {
+      const response = await axios.put('http://localhost:8080/castImage/update-cast-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
   
       if (response.status === 200) {
-        await generatePurgeList();
+        setMessage('Image updated successfully!');
+        setPurgeListDialogOpen(true);
       } else {
         setError(response.data || 'Failed to update image.');
       }
@@ -135,33 +132,35 @@ const CastImage = () => {
   };
   
   const generatePurgeList = async () => {
+    const formData = new FormData();
+    formData.append('fileName', castId);
+    formData.append('castId', castId);
     try {
-      const response = await axios.get('https://localhost:3000/castImage/generate-purge-curls', {
-        params: { castId },
+      setMessage(`File created successfully as ${castId}.txt`);
+      const response = await axios.post('http://localhost:8080/castImage/generatePurgeCurls', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-  
       if (response.status === 200) {
         setPurgeList(response.data);
-        setPurgeListDialogOpen(true);
+        setPurgeListDialogOpen(false);
       }
     } catch (err) {
       setError('Failed to generate purge list.');
+      setPurgeListDialogOpen(false);
     }
   };
   
-  
-
   const handleDownload = () => {
     setIsDownloadComplete(true);
     setDialogOpen(false);
   };
-
   const removeFile = () => {
     setFile(null);
     setFileName('');
     setPreviewUrl(null);
   };
-
   useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -169,7 +168,6 @@ const CastImage = () => {
       }
     };
   }, [previewUrl]);
-
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (!isDownloadComplete) {
@@ -177,14 +175,11 @@ const CastImage = () => {
         e.returnValue = 'Are you sure you want to leave? Your download isn\'t complete yet.';
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [isDownloadComplete]);
-
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
       <Paper
@@ -298,14 +293,12 @@ const CastImage = () => {
               )}
             </Box>
           </Grid>
-
           <Grid item xs={12} md={6} sx={{ p: 4 }}>
             <form onSubmit={handleSubmit}>
               <Stack spacing={4} sx={{ height: '100%' }}>
                 <Typography variant="h5" color="primary.main" sx={{ mb: 2, fontWeight: "bold", fontFamily: "16px mulish" }}>
                   Image Info
                 </Typography>
-
                 <TextField
                   label="Cast ID"
                   required
@@ -319,7 +312,6 @@ const CastImage = () => {
                     }
                   }}
                 />
-
                 <TextField
                   label="GCP Path"
                   required
@@ -333,7 +325,6 @@ const CastImage = () => {
                     }
                   }}
                 />
-
                 <Button
                   type="submit"
                   variant="contained"
@@ -403,7 +394,6 @@ const CastImage = () => {
           </Grid>
         </Grid>
       </Paper>
-
       <Dialog
         open={updateDialogOpen}
         onClose={() => setUpdateDialogOpen(false)}
@@ -439,7 +429,6 @@ const CastImage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Dialog
         open={purgeListDialogOpen}
         disableEscapeKeyDown
@@ -461,16 +450,7 @@ const CastImage = () => {
         <DialogActions>
           <Button
             variant="contained"
-            onClick={() => {
-              const blob = new Blob([purgeList], { type: 'text/plain' });
-              const link = document.createElement('a');
-              link.href = URL.createObjectURL(blob);
-              link.download = 'purge_list.txt';
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              setPurgeListDialogOpen(false);
-            }}
+            onClick={() => generatePurgeList()}
             sx={{ textTransform: 'none', borderRadius: 2 }}
           >
             Download Purge List
@@ -480,5 +460,4 @@ const CastImage = () => {
     </Container>
   );
 };
-
 export default CastImage;
