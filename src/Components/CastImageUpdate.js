@@ -22,6 +22,7 @@ import ErrorIcon from '@mui/icons-material/Error';
 import ImageIcon from '@mui/icons-material/Image';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorSound from '../Assets/error-sound.wav';
+import axios from 'axios';
 
 const CastImage = () => {
   const [file, setFile] = useState(null);
@@ -36,6 +37,10 @@ const CastImage = () => {
   const [invalidFile, setInvalidFile] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const errorSoundRef = useRef(new Audio(ErrorSound));
+
+  const playErrorSound = () => {
+    errorSoundRef.current.play();
+  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -57,35 +62,94 @@ const CastImage = () => {
     }
   };
 
-  const playErrorSound = () => {
-    errorSoundRef.current.play();
-  };
-
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [purgeListDialogOpen, setPurgeListDialogOpen] = useState(false);
+  const [purgeList, setPurgeList] = useState(null); // Stores the purge list data
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     if (!file) {
       setError('Please select a file.');
       return;
     }
-
+  
     setLoading(true);
+  
     const formData = new FormData();
     formData.append('file', file);
     formData.append('castId', castId);
     formData.append('gcpPath', gcpPath);
-
+  
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setMessage('Image updated successfully!');
-      setError('');
-      setDialogOpen(true);
+      const response = await axios.post('https://localhost:3000/castImage/save-cast-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      if (response.status === 201 || response.status === 200) {
+        setMessage(response.data.message || 'Image uploaded successfully!');
+        setError('');
+        setDialogOpen(true);
+      } else if (response.status === 400 && response.data.includes("Cast ID already exists. Try updating!")) {
+        setUpdateDialogOpen(true);
+      } else {
+        setError(response.data || 'Something went wrong. Try again!');
+        setMessage('');
+      }
     } catch (err) {
-      setError(err.message || 'Something went wrong. Try again!');
+      setError(err.response?.data || 'Something went wrong. Try again!');
       setMessage('');
     } finally {
       setLoading(false);
     }
   };
+  
+  const handleUpdate = async () => {
+    setUpdateDialogOpen(false);
+    setLoading(true);
+  
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('castId', castId);
+    formData.append('gcpPath', gcpPath);
+  
+    try {
+      const response = await axios.post('https://localhost:3000/castImage/update-cast-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      if (response.status === 200) {
+        await generatePurgeList();
+      } else {
+        setError(response.data || 'Failed to update image.');
+      }
+    } catch (err) {
+      setError(err.response?.data || 'Failed to update image.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const generatePurgeList = async () => {
+    try {
+      const response = await axios.get('https://localhost:3000/castImage/generate-purge-curls', {
+        params: { castId },
+      });
+  
+      if (response.status === 200) {
+        setPurgeList(response.data);
+        setPurgeListDialogOpen(true);
+      }
+    } catch (err) {
+      setError('Failed to generate purge list.');
+    }
+  };
+  
+  
 
   const handleDownload = () => {
     setIsDownloadComplete(true);
@@ -238,7 +302,7 @@ const CastImage = () => {
           <Grid item xs={12} md={6} sx={{ p: 4 }}>
             <form onSubmit={handleSubmit}>
               <Stack spacing={4} sx={{ height: '100%' }}>
-                <Typography variant="h5" color="primary.main" sx={{ mb: 2, fontWeight: 400 }}>
+                <Typography variant="h5" color="primary.main" sx={{ mb: 2, fontWeight: "bold", fontFamily: "16px mulish" }}>
                   Image Info
                 </Typography>
 
@@ -251,6 +315,7 @@ const CastImage = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       bgcolor: 'background.paper',
+                      width: '350px',
                     }
                   }}
                 />
@@ -264,6 +329,7 @@ const CastImage = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       bgcolor: 'background.paper',
+                      width: '350px',
                     }
                   }}
                 />
@@ -294,34 +360,6 @@ const CastImage = () => {
                     'Upload Image'
                   )}
                 </Button>
-
-                <Button
-                  // type="submit"
-                  variant="contained"
-                  disabled={loading}
-                  sx={{
-                    py: 1.5,
-                    height: '40px',
-                    width: '190px',
-                    borderRadius: 1,
-                    fontSize: '1.0rem',
-                    fontWeight: 540,
-                    boxShadow: 4,
-                    bgcolor: 'primary.main',
-                    mt: 'auto',
-                    '&:hover': {
-                      bgcolor: 'primary.dark',
-                      boxShadow: 6,
-                    },
-                  }}
-                >
-                  {/* {loading ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : ( */}
-                    Get Purge List
-                  {/* )} */}
-                </Button>
-
                 {(message || error) && (
                   <Box sx={{ mt: 2 }}>
                     {message && (
@@ -367,41 +405,78 @@ const CastImage = () => {
       </Paper>
 
       <Dialog
-        disableBackdropClick
-        open={dialogOpen} 
-        // onClose={() => ()}
+        open={updateDialogOpen}
+        onClose={() => setUpdateDialogOpen(false)}
         PaperProps={{
           sx: {
             borderRadius: 2,
-            boxShadow: 24,
-          }
+            backdropFilter: 'blur(10px)',
+          },
         }}
-        >
+      >
         <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <CheckCircleIcon color="success" />
-            <Typography variant="h6">Upload Successful</Typography>
-          </Stack>
+          <Typography variant="h6">Cast Image Already Exists</Typography>
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            File uploaded successfully. Download the following purge list and hand it over to the infra team.
+            The cast image already exists. Do you want to update it?
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ p: 2.5 }}>
+        <DialogActions>
           <Button
-            onClick={handleDownload}
             variant="contained"
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              px: 3,
+            onClick={handleUpdate}
+            sx={{ textTransform: 'none', borderRadius: 2 }}
+          >
+            Yes
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setUpdateDialogOpen(false)}
+            sx={{ textTransform: 'none', borderRadius: 2 }}
+          >
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={purgeListDialogOpen}
+        disableEscapeKeyDown
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            backdropFilter: 'blur(10px)',
+          },
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h6">Purge List Generated</Typography>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            The purge list has been generated. Please download it and share it with the infra team.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            onClick={() => {
+              const blob = new Blob([purgeList], { type: 'text/plain' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = 'purge_list.txt';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              setPurgeListDialogOpen(false);
             }}
+            sx={{ textTransform: 'none', borderRadius: 2 }}
           >
             Download Purge List
           </Button>
         </DialogActions>
-        </Dialog>
+      </Dialog>
     </Container>
   );
 };
